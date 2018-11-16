@@ -1,0 +1,561 @@
+===============================
+====== Deep Neural Nets =======
+===============================
+
+WEEK1
+=====
+Why did deep learning take off now (2017)? - scale (of neural net and training data)
+    - hardware advancement - more computational power
+    - algorithmic advancements - more efficiency
+    - more data is available - by using a large amount of labeled data
+        - performance of traditional machine learning algorithm (logistic regression) - does not improve after some point - flattens out
+        - performance of neural networks (especially large ones) keeps improving, dominates other approaches
+
+WEEK2
+=====
+Logistic regression - binary classification
+    - probability of P(y=1|x)
+    - linear fucntion + non-linear activation (also cap between 0-1)
+
+Loss function:
+    - squared error - non-convex
+    - if y==1, -log(y^) -> so y^ is close to 0 for minimal loss
+    - if y==0, -log(1-y^) -> so y^ is close to 1 for minimal loss
+Create a model for predicting output from inputs - one parameter for each inputs
+Define a Cost function (sum of loss functions for all training examples) - that is convex
+Minimize cost function (average can be used, instead sum of loss functions)
+    - find parameters that give minimum - gradient descent (work because of convex loss function)
+
+Initailize the parameters randomly
+- For every traning example - and average results
+    - calculate cost function (forward propagations)
+    - calculate (partial) derivative - rate of change - for each parameter (backward propagation)
+    - update parameters with derivatives
+
+Q: Cost function convex diagram contains all training examples data?
+    - yes, it sums the loss functions - for all training examples
+    - we use average instead of sum, but it's the same thing
+
+Q: How to calculate the partial derivatives (of W,b) of the cost function? To descend?
+    - if cost is the average of loss, then derivative of cost is the average of derivatives of loss
+    - the partial derivative of one loss function (a=y^,y) can be calculated
+
+A derivative (slope) is the rate of change, if i change x a bit, how much does f(x) change, at a given point?
+
+WEEK3
+=====
+Shallow neural net - 1 hidden layer
+Doing logistic regression repeateadly for each node in each layer
+
+a linear (activation) hidden layer is useless 
+    - the composition of two linear function is a linear function
+    - doesn't add anything, it will just a composed linear regression
+
+random initialization is important - for hidden layer (with multi-node) paremeters
+    - in case of zero initaialization (or same value initialization)
+    - all nodes will compute the same function - for the same input
+    - and act as just one node, symmetrical
+
+logistic regression - doesn't perform well, when the dataset is not linearly separable
+neural networks do better -they can predic higly non-linear decision boundaries
+
+Q: Why is RELU a good activation function? almost linear?
+    A: Is seems almost linear, but it is not, does not satisfy additiviy, homogeniety.
+    This means it is indead a non-linear function and universal approximation theorem applies to nn using this function.
+    It is easier to calculate, does not have saturating gradient problem
+
+Q: Did we compute the derivative of sigmoid activation for logistic regression?
+    - Yes, we used the final result y^-y of the derivation 
+
+Q: Classification output, when using the network for prediction, how do we interpret the sigmoid function output?
+    A: Output >= 0.5, then input is considered class A; output < 0.5 then output is not class A (it is class B)
+
+WEEK4
+=====
+Deep neural net - multiple hidden layers
+
+Why deep neural nets (with lot of hidden layers) work well?
+    - the first layers compute simple, low-level functions
+    - later layers can build on these and compute complex functions
+    - circuit theory: there are funcition which you can compute with deep nets,
+    which would require exponentially more hidden units if computed with a shallow net 
+
+Backprop derivatives/gradient of the loss function - for parameters
+(the derivative of the next step * the change of this element in the next step)
+    - cost function derivative == sum of loss function derivatives
+        - dJ(W[1],b[1],W[2],b[2],..) / dW[1] ==> dL(a[L]==y^,y) / dW[1]
+    - The layer l+1, uses previous layer a[l] - ( it's z[l+1]=W[l+1]*a[l] + b[l+1] )
+    - One step backprop, calculate da[l], knowing dL/dz[l+1] = "dz[l+1]"
+        - da[l] = dL/dz[l+1] * dz[l+1]/da[l] = "dz[l+1]" * W[l+1]
+    - Calculate dz[l], knowing dL/da[l] = "da[l]"
+        - dz[l] = da[l]/dz[l] * dL/da[l] = g'(z[l]) * "da[l]"
+        - g'(z) = dg(z)/dz = da/dz - the derivative of the activation function
+
+
+Q: how do we know the cost function is convex, for deep nets?
+    A: because the output is the same, one node, same activation function,
+    just that the cost function has more parameters
+
+1. Initialize parameters / Define hyperparameters
+2. Loop for num_iterations:
+    a. Forward propagation
+    b. Compute cost function
+    c. Backward propagation
+    d. Update parameters (using parameters, and grads from backprop) 
+4. Use trained parameters to predict labels
+
+=============================================
+====== Improving Deep Neural Networks =======
+=============================================
+
+WEEK1
+=====
+Bias == underfitting
+    - poor performance on the training set (compared to Human Level or Bayes optimal error rate)
+    How to decrease?
+        - bigger network - more hidden layer/units
+        - train longer - more iterations
+        - better optimalization algorithm (Adam)
+        - change neural net architecutre (CNN,RNN) / find better set of hyperparameters
+
+Variance == overfitting
+    - poor performance on the dev/cross-validation set (compared to the test set error rate)
+    How to decrease?
+        - more data (bigger training set)
+            - data augmentation
+        - regularization
+            - L2 weights for reducing W - small W less complex, more linear (weight decay)
+            - Drop out nodes - apply only in training(forward/backward)
+                - during cross-validation/testing shouldn't be applied
+            - early stopping
+        - change neural net architecutre (CNN,RNN) / find better set of hyperparameters
+
+Poor test set performance - compared to dev/cross-validation set
+    - overfitted the dev set
+    - use a larger dev set
+
+Other optimization
+    - input normalization
+    - weight matrix initiazliation
+        - has to be random - to break the symmetry, differnt nodes lear different functions
+        - using too large/too small values could lead to problem of vanishing/exploding gradients for deep networks
+            - reduce this problem, by multipling by a variance factor (2 / nodes in previous layer) 
+
+WEEK2
+=====
+How to speed up training?
+
+    - Mini-batch gradient desccent
+        - split training examples, so you can take multiples gradient descent steps per epoch (iteration over all training examples)
+        - mini-batch size, power of two, 64-512, should fit into CPU/GPU memory
+    ADAM: ADAptive Moment estimation - change the update function
+        - Gradient descent with momentum (taking past gradient into account)
+            - instead of updating with the derivatives (dW,db), use an average of last x derivatives - to average out oscillations
+                - e.g exponentially wieghted average - easy to compute
+                - Vi = b * Vi-1 + (1-b) Wi -> 0.9 ~ average of last 10 values
+            - bias correction, scaling for initial error (where last 10 values are 0)
+                - divide by 1 - (b^iteration)
+        - RMS propagation (divide by average)
+            - calculate exponentially wieghted average of the squares of derivatives (dW^2,db^2)
+            - when updating, divide by the square root of this values - to average out oscillations
+    - learning rate decay
+        - slwoly reduce the learning rate
+
+Local optima - not a problem
+    - point with zero derivative, can band upwards/downwards
+    - to be a local optima all dimensions have to bend upwards
+    - in higher dimension saddle points are much more likely than local optima, gradient descent will not be stuck
+
+WEEK3
+=====
+
+Hyperparameter tuning
+    - learning rate, nr of layers, learning rate decay, mini-batch size, hidden units, momentum
+    - random sampling (logarithmic)
+    - from coarse to fine
+
+Binary classification - 2 classes - Logistic Regressions
+Softmax classification - n disjunct classes- Generalization of logistic regression
+    - output layer has n number (probabilities)
+        - hard max would just put 1 instead of the max values, an 0 in other position
+        - soft max maps these probabilites more gently, more useful when calculating loss function
+
+Softmax activation:
+    - e^z / sum (e^z)
+    - map z -> to probabilities (hihger z, higher probability)
+    - normalizing sum - make sure probabilites sum to 1
+Training softmax classifier:
+    - loss function: - sum(y_expected * log(y_predicted)
+    - y_expected vector is "hard max", with 0s and a 1 -> all other loss terms are 0
+    - the 1 term expects the y_predicted to be close to 1, else huge negative number
+    - try to maximize probability of expected class, which results in minimizing other probabilities
+
+Batch normalization - reduce changes in input distribution
+    - normalize mean and variance of inputs to every layer (not just x, but z)
+    - two additional parameters to contol mean and variance, not to always force mean 0 and variance 1
+        - b parameter can be omitted, because it will be substracted with the mean
+    - decouples layers, let's them learn more independently
+    - after calculating z for a layer and before calculating the activation for the next, do a normilize
+        - z -> normialize -> a
+    - if calculated on mini-batches, adds some noise to normalized z -> has small regularization effect
+
+===================================
+==== Machine Learning Strategy ====
+===================================
+
+WEEK1
+=====
+Accuracy: correct predicitions (TP + TN) / (TP + FP + TN + FN)
+Precision: TP / all predicted positive (TP+FP)
+Recall: (TP rate) TP / all actual positive (TP+FN)
+
+Single number Evaluation Metric
+    - F1 score - harmonic average of precision and recall
+        - precision: how many predicted cats, were really cats picture inputs (1- FP)
+        - recall: how many of all cat inputs, were recognized - predicted as cat correctly (1-FN)
+
+Machine Learning system performance
+    - below human-level - easier to improve/more clear directions
+        - get more, better labeled data from humans
+        - rely on human intution / gain insight from manual error analysis
+        - better Bias & Variance analysis
+    - above human-level - harder to improve - no clear direction
+
+
+Supervised learning optimalization (in case train/dev/test have same distribution)
+Bias & Variance analysis
+    - fit the training set well (low "avoidable" bias compared to proxy for Bayes optimal error)
+    - generalize well to dev/test set (low variance compared to test set error)
+
+Human level performance
+    - in Bias&Variance alaysis (as proxy for Bayes optiomal error) - use lowest value
+    - for publishing a paper, deploying a system - maybe a typical value is okay
+
+WEEK2
+=====
+Error analysis
+    - analyse mislabeled dev set examples - to prioritize next steps
+        - to come up with ceilings for the different directions for improvements
+
+Dev/Test set should always have the same distribution
+
+Training set can have different distribution than Dev/Test
+    - in this case a high dev set error can have to causes
+        - variance problem (high variance)
+        - data mismatch problem (difference in distribution)
+    - use a training-dev set to check data mismatch (use same distribution as training set)
+    - addressing data mismatch
+        - try to make similar data (artificial data synthehsis)
+        - collect more similar data
+
+Transfer learning
+    - retrain last one or two layers only - use random initialization for weights
+    - keep rest of the parameters fixed
+    - similar low level features
+Multi-task learning
+    - train multi-classification network - multiple labels (non-disjunt classification)
+    - loss function to be the sum of the individual losses
+    - vectors not fully labeled - not a problem - cost can be computed as such that unlabeled entries do not influence it
+    - similar low level features
+
+=======================================
+==== Convolutional Neural Networks ====
+=======================================
+
+WEEK1
+=====
+How to make large size inputs (image) feasable for your neural network (computer vision)?
+    - convolution operation - multiply by filter element wise and sum results
+
+Convolution layers - detect edges  
+    - can be used edge detection (Sobel, Scharr)
+        - learn parameter for the filter/kernel used for edge detection
+    - Padding and Stride (hop): (n+2p-f / s) + 1
+    - Convolution in math (extra flip of the kernel) vs cross-corelation (used as convolution) in deep learning
+        - flip results in associativity (but it is not needed for neural nets)
+    - convolution on volume - with on 3d filter - still gives 2d output
+
+Pooling layers - check result of edge detection
+    - max/(average) pooling
+    - applied independently to each channel
+    - has no weights/parameters to learn - in backprop - (but still affect the calculation?)
+Fully Connected layers
+
+Why convolution? 
+    - advantage over fully connceted layers - reduced parameters
+        - parameter sharing - a feature detector filter (vertical egde) 
+            that is useful in one part is probably also useful in other parts of the image
+            no need for special vertical edge detector for the lower left corner
+        - sparsity of connection - each output depends only on a few inputs, instead of all
+            - smaller training set is enough to train, less prone to overfitting
+
+WEEK2
+=====
+Classic Deep Neural Network Architectures:
+    - LeNet 5 (1998) - handwritten digit recognition - 60.000 parameter
+    - AlexNet (2012) - ImageNet classification (100 classes) - 60.000.000 parameters
+    - VGG 16 (2015) - Very deep net (16 param layers) for ImageNet classification - 138.000.000 parameters
+
+Problem: It is hard to train very-very deep network, because of wanishing and exploding gradients
+    - increasing the number of layers should result in less training error in theory, but it does not
+Solution: Skip connections, feed activation from one layer to a deeper layer directly -> ResNets
+    - residual block (same size, or different size with Conv2D)
+        - skip connection to tackle vanishing gradient problem - and apply RELU 
+        - the identity funciton easy to learn - does not hurt perfomance
+        - hidden units can also learn something useful instead of the indentity function
+    - increasing the number of layers results in less training error
+
+Advanced Deep Neural Network Architectures:
+    - Residual Networks (2015) - Residual blocks
+    - Network in Network (2013) - 1x1 convolution - fully connected network (with the same wieghts for each filter)
+        - add another layer of non-linearity to the network
+        - reduce channels - use fewer computations
+    - Inception Network (2014) - GoogLeNet - use all conv filter sizes and pool layer - stack up outputs
+        - more complicated architecture - but it also works remarkably well
+        - if computational cost is a problem 
+            - create bottlenck - shrink down the representation using 1x1 convs
+
+
+Computer Vision - always helps to use
+    Transfer Learning
+        - initialize your weights to an already trained value (downloaded) - instead of random intialization
+        - change the last softmax layer - to your needs
+    Data Augmentation
+        - Vertical mirroring, random cropping, color shifting (PCA augmentation)
+
+Trade-off: Data quantity vs Algorithm complexity/hand-engineering (features/network)
+
+Benchmark/Competition tips:
+    Ensembling - average outputs (3-15)
+    Evaluation time crop - (10-crop)
+
+
+WEEK3
+=====
+Object detection - label the training data with feature points/bounding boxes
+    - What should be the loss function? - used pre-trained model
+
+Classification
+Localization -> 1 object - classify and draw bounding box
+    - generate target labels for the training set - with class and bounding box coordinates
+    - define loss function (log likehood loss, logistic regression loss, squared error loss)
+    - landmark detection - define landmark consitenly across the training set
+Detection -> multiple objects - multiple classes, and bounding box
+    - sliding window 
+        - with linear classifier and hand engineered features - runs okay
+        - with ConvNets - sequentially - too slow, high computational cost
+    - OverFeat (2014) - convolutional implementation of sliding window, all in one pass
+    - Yolo (2015) - predicitio in just one forward propagation step
+        - using grid cells (19X19), assigning object to one cell (containing the midpoint) in the training set
+        - YOLO input: IMAGE (m, 608, 608, 3)
+        - YOLO output: ENCODING (m, 19, 19, 5 - anchor boxes, p + bounding box coordinates + c - classes)
+        - for each anochor box (of each cell) compute most probable class c - with its bounding box
+            - convolutional implementation of localization
+            - assumption: there will be only 1 object in each grid cell 
+            - training label: split image using gridcell (19x19) 
+            - annotate training data - like you would if running a localization algorithm on each cell
+                - each object will be assigned to one gridcell, where its midpoint is located
+                - multi-dimensional output y - class and bounding box coordinates (could be wider than the grid cell)
+    - Regional-CNN (2013) - only run detection on regions, which are proposed in a seprate, first step
+
+Evaluate object detection
+    - Intersection over Union IoU > 0.5 - bounding box similarity
+
+Non-max supression - improving YOLO prediction
+    - cleaning up false predictions - remove hihg IoU non-max bounding boxes
+
+Anchor boxes - way to handle multiple objects having midpoint in the same cell
+    - assign shapes - anchor boxes - to the object you want to detect
+    - each object in training image is assinged to a cell and to a anchor box, wiht highest IoU
+
+WEEK4
+=====
+
+Face Verification - 1:1 matching
+    - Inputs: Image1, Image2 (or ID or Name)
+    - Output: Is it the claimed person? - Y/N
+Face Recognition - 1:K matching
+    - Input: Image1
+    - Output: Who is this person? - ID or Name or Image
+
+One Shot learning
+    - only one training example for each person's face - not enough to train a good network
+    - use "difference/similarity between 2 images" function - to tackle this issue
+    - Siamese Network Architecture - two input image - going through the same network (same parameters)
+        - DeepFace (2014) - train nn to output an "encoding" of faces - representing "difference" between faces
+            - use triplet loss function (anchor, positive, negative)
+                - difference, anchor should be closer to positive with margin alpha -> (A-P) + alpha < (A-N)
+            - use binary classification loss function (image1, image2) - to decide if same person or not
+                - logistic regression - input feature - the difference between encodings
+        - FaceNet (2015) - speed up/improve training by choosing hard/similar A-P, A-N triplets
+
+Neural style transfer (2015) - content+style -> generated imgae 
+    - uses a previosly trained ConvNet - fix parameters
+    - update input (generated image) pixel values in each iteration (not parameter of the ConvNet)
+    - training: 
+        - create random generated image
+        - use a pre-trained ConvNet and calculate cost function (which optimizez pixel values)
+        - update pixel values in each iteration 
+    - content cost function 
+        - calculate activation for one layer l - for content and generated image
+            - the value for content image will be the same - input content image, output of layer using the smae pre-trained ConvNet
+            - the value for generated image will change in each iteration - input changes
+        - take difference in activations
+    - style cost fucntion 
+        - calcualte style matrix - for many layer - for style and generated image
+            - style matrix: correlation between filter activations - CHANNELS - of a layer in an image (unnormalized cross-covariance)
+            - diagonal elements: prevelance of a feature - detected by a filter
+            - other elmenets: how much different features occurr together
+        - take difference in style matrices
+
+
+===================================
+==== Recurrent Neural Networks ====
+===================================
+
+WEEK1
+=====
+
+Motivation for RNN:
+    - Sequence data - they are not independent (not iid) - sequence position is important
+    - capture dependecy between early and later data in the sequence ("memory value")
+    - traditional nerutal network doesn't perform good:
+        - input/output can be of different lenght (1-to-many, many-to-1)
+        - doesn't shared features learned across different positions in the sequence
+    
+RNN loss function
+    - name entity recognition - is it a person's name? - binary classification
+    - use logistic regression loss -((y)log(y^)+ (1-y)log(1-y^))- for each position/timestamp
+
+RNN predicting the next sequence output, using activation values from other sequence positions
+    - uses shared parameters for each sequence prediction
+    - 1 layers network
+
+Bidirectional RNN - uses previous and next sequence values to predict current value
+
+RNN cell (basic) - 1 hidden layer
+    - inputs: 
+        - x<t> - sequence data
+        - a<t-1> - previous RNN cell activation 
+
+Gated RNN call - 2014
+    - inputs: 
+        - x<t> - sequence data
+        - a<t-1> - previous RNN cell activation/memory value
+    - 2 gates
+        - update - memory value, or keep old value
+        - relevance - of previous memory value, in calculating new value 
+
+LTSM cell - 1997
+    - inputs: 
+        - x<t> - sequence data
+        - a<t-1> - previous RNN cell activation
+        - c<t-1> - cell state, memory variable
+    - 3 gates
+        - forget - previous memory value
+        - update - new memory value
+        - output - what to output, considering memory value
+
+Vanishing gradients (error cannot backpropagate to early layers)
+    - how to capture long range dependencies?
+    - Gated Recurrent Unit - 2014
+    - LTSM - 1997
+
+Exploding gradients
+    - NaN - can be solved by gradient clipping
+
+
+Language Model
+    - what is the probability of a sentence? 
+        - useful in speech recognition, differentiate between similarly sounding words/sentences
+    - estimate probability of next words, given previous words - 10.000 softmax at every step
+        - use vocabulary of 10.000 words, 1-hot representation
+        - softmax lost function
+    - sampling - choose a word, based on predictions, feed it in
+
+    - character level - dino names
+    - take first dino name, its characters are the sequence input 
+        - [b,e,t,a,s,a,u,r,u,s]
+    - the expected output value for the sequence is the next character - a one shifted array
+        - [e,t,a,s,a,u,r,u,s,\n]
+        
+WEEK2
+=====
+
+NLP - Word representations
+    - 1 hot - does not capture how similar words are
+    - embeddings=encoding - high dimensional feature vectors/in a feature space -  to learn similarities
+    (featureized representation)
+        - t-SNE - 2D visualisazion - 2008
+        - can be useful as transfer learning
+        - similarity measures - cosine similarity or euclidian distance
+
+Learn word embeddings
+    - Neural language model - 2003
+        - 1-hot vectors - Embedding matrix - softmax
+        - map from context to target - e.g.: use previous 4 words to predict next word
+            - as a side-effect for this task, good embeddings can be learned
+    - Word2Vec - 2013 
+        - (Theta & Embedding - 500 dimensional vector)
+        - Skip gram
+            - come up with random (context,target) pairs
+                - random context (balanced to pick less common words) 
+                - random target (within 10 words)
+            - given a context word, what is a target word (something in 10 word window)
+                - hard learning problem, but as a side effect, good embedding can be learned
+            - expensive softmax - reduce computation with hierarhical tree of classifiers
+        - CBow
+            - context: surrounding words, target: middle word
+    - Negative sampling - 2013
+        - pick context, pick target - and add negative examples form the dictionary randomly
+        - predict if pair is valid 
+        - less computation - binary classification instead of softmax isValid(context,target)
+    - GloVe - 2014 - Global Vectors
+        - count frequency of word appearing close - Xij matrix
+        - try to make embeddings close to X values
+        - minimize square difference - cost function
+    - Sentiment analyisis
+        - use embeddings - average them and use softmax - 1-5 stars
+        - use embedding - with RNN (many-to-one)
+    - Debiassing word embassing - man is to computer programmer - 2016
+        - indentiy bias direction (substrac all pair (boy,girl) - average)
+        - neutralize non definitional words - project to non-bias axis
+        - equalize pairs - relative to bias axis
+
+
+WEEK3
+=====
+
+Seqeunce to sequence models
+    - machine translation
+        - "conditional language model", what is the probability of the translated sentence given the input sentence
+    - RNN with Encoder - Decoder - to predict probabilites of a translations
+    - Search algorithm - to find best matching translation
+       - greedy search does not work - best first word, then best second word - not the best joint probabilities
+            - you want to pick the entire sequence of words that maximizes joint probability
+        - beam search - greedy with multiple possibilities
+            - beam width 3 - always keep track, continue with top 3 probabilites
+            - = p(a|b)*p(b) = p(a,b) - conditonal probability = joint probability / normalized
+            - error analysis
+                - human translation - y*
+                - predicted translation - y^
+                - if y* > y^ - Beam search didn't find the highest probability translation - increase beam size
+                - else - RNN is at fault, wrong predictions - regularization, training data, different architecture
+    - Attention model - 2014
+        - what words to pay attention to - when translating
+        - what elements of the input sequence to focue on - when generating output sequence
+            - when generating the next translated word - how much attention should be payed each word
+            in the context of the same position in the original sentence
+        - "attention weights" - can be calculated with a small neural net as well - based on 
+            - all encoder activation values
+            - decoder previous state
+        - quadratic cost
+        - example architecture - date transformation:
+            - pre-attention Bi-LSTM (two outputs: activation from left and from right - can be concatenated into one (pre-a))
+            - attention model (caluculates weights (based on previous post-a, all pre-as) for all pre-a - to output (context))
+            - post-attention LSTM (two inputs: previous cell output activation (a) and cell state (c))
+        - example architecture - trigger word detection:
+            - CONV 1D filter - extract low level features/dimension reduction
+            - BatchNorm + RELU + Dropout
+            - GRU + Dropout + BatchNorm
+            - Dense + Sigmoid

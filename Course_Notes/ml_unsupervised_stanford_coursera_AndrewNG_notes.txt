@@ -1,0 +1,127 @@
+=======================================
+=== Machine Learning - Unsupervised ===
+=======================================
+
+K-Means - Clustering 
+====================
+ 
+Algorithm: 
+    - Two step, iterative 
+        - Assign examples to a cluster 
+        - Move cluster centroid (to the mean of assigned examples) 
+
+Cost function:  
+    - minimize distance of examples and assigned cluster centroid - || x(i) - µ(i)b ||^2 
+
+Random intialization: pick some examples as cluster centroid randomly 
+Local optima can be found - multiple runs with random intialization, pick the one with lowest cost fucntion 
+
+
+
+PCA - Principal Component Analysis 
+==================================
+ 
+Dimension reduction of the features 
+Reduce from n to k dimension 
+Find k vector onto which project the data, so as to minimize the projection errors (work with normalized features) 
+
+Cost function: 
+    - Sum of the squared projection errors || x - xapprox ||^2 
+
+Algorithm 
+    - Feature scaling (/max-min) & Mean normalization (-mean) 
+    - Calculate covariance matrix:  sigma = 1/m * X' * X (n *  n) 
+    - Compute eigenvectors: [U,S,V] = svd(sigma) 
+    - Take k columns form U: Ureduce (n * k) 
+    - Calculate new features (reduced dimension feautre) z = Ureduce' * x 
+    to approximate original data: x_appr = Ureduce * z 
+
+Choosing k (number of principal components) 
+    - Average squared projection error / 
+    - Total variation in the data <= 0.01 (1% - 99% of variance is retained =  sum(k) S ii / sum(n) S ii ) 
+
+
+Bad usage: 
+    - prevent overfitting (use regularization instead) 
+    - use PCA only after trying to use the original/raw data 
+
+
+Gradient Descent Types - Large datasets 
+=======================================
+ 
+Gradiant Descent 
+    - Repeat until cost function converges 
+    - modify theta with partial derivative of cost function 
+
+Gradient Descent Type 
+    - Batch (normal)
+        - m - all training examples in each iteration
+        - slow, but converges on shortest path 
+    - Stochastic
+        - 1 training example
+        - fast, but oscillates (can be avoided, if alpha decreases as iteration number grows
+    - Mini-batch
+        - 1<batch<m
+        - Fastest, if vectorized
+
+
+Online learning 
+===============
+
+Lots of continuous data (streaming data) - use every example once, than discard 
+Adapts to changing user tastes
+
+
+Anomaly detection 
+=================
+
+model p(x) - probability of element being OK, not anomaly 
+if p(test)<epsz - flag anomaly 
+
+Calculate for every feature: 
+    - mu - average 
+    - sigma^2 - average diff (x - mu)^2 
+
+Predictor funtion: product(p(x; mu,sigma2)) - density estimation 
+p(x)<epsz 
+
+p() = Gaussian (Normal) probabilty distribution 
+mu, sigma - estimation 
+
+Evaluation with a labeled data set, similar to supervide learning 
+CV, test set, percision/recall, F1 score 
+
+ 
+
+Anomaly detection
+    - small number of anomaly examples, use these only for evaluation 
+    - Large number of normal examples only these are needed for a good p() gaussian density estimation 
+    - Many different types of anomalies 
+
+Supervised learning 
+    - Enough, large number of anomalies so the algorithm can learn what anomalies are like 
+    - Large number of normal examples 
+    - Similar anomalies in the future  
+
+Feature selection: transform data to have a gaussian histogram (log, sqrt) 
+
+ 
+Recommender systems 
+===================
+ 
+Example for an algorithm that automatically learns a good set of features 
+Features - movie content/type describers 
+To predict - ratings for movies not rated by user 
+
+Content based recommender: 
+    - Assume we have features available that capture content 
+    - Linear regression for each user (based on features) - predict rating 
+    - Recommend based on high predicted rating for user 
+
+Collaborative filtering recommender: 
+    - Assume we have theta from users, model parameters 
+    - Does feature learning - by doing linear regression to predict features 
+    - Basic: Guess theta -> calc features -> calc theta -> calc features 
+    - Advanced: Minimize simultaneously 
+
+After features are learnt, you can recommend items with low feature distance 

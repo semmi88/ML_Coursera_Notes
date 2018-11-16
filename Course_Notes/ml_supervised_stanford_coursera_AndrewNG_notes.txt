@@ -1,0 +1,212 @@
+=====================================
+=== Machine Learning - Supervised ===
+=====================================
+
+Training set (x,y) 
+| 
+Learning Algorithm - (minimizes a cost function)  
+| 
+Predictor function (Hypothesis/Model) - h(x)  
+
+
+Predictor function - h(x) = model that predicts y from x 
+Parameters: theta  
+
+Cost function - J(theta) = model error (for the given training set, and the chosen theta) 
+difference between predicted y and actual y 
+
+Learning algorithm - Predictor function is improved 
+by minimizing the cost function 
+
+Feature normalization  
+========================
+To make the algorithm faster/have no dominant feature 
+    (X-muX) / sigmaX 
+    (X-avg(X)) / (max-min) 
+ 
+Learning Rate (alpha) 
+=====================
+The step size taken by gradient descent 
+ 
+slow algorithm -> too small steps -> increase alpha 
+cost function increaseing -> too large steps -> decrease alpha 
+
+Regularization (lambda) 
+=======================
+Modify cost function: add the value of the parameters (theta) 
+Aim: to make the parameters smaller - not to overfit the predictor funciton 
+
+overfitting -> increase lambda 
+underfitting -> decrease lambda
+
+
+BackPropagation - gradient for every logistic regression - every row in Theta 
+===============
+For each training example 
+    1.) Forward propagation  - for each layer (A,Z) 
+    Adding values for biased unit  
+
+    2.) Calculate error -delta for each layer, except first 
+    Last layer: A-Y (activation output - expected output) 
+    Hidden layers: delta_i = theta_i' * delta_i+1 .* sigmoidGradient(Z_i) 
+
+    3.) Calculate gradient, by accumulating the errors 
+            gradientMatrix_i = gradientMatrix_i + error_i+1 * activation_i' 
+End 
+
+gradientMatrix/m && regularization if needed
+
+
+Bias and Variance 
+==================
+Underfit - High bias - (Same) High train/CV error - more data will not help 
+fit straight line - strong preconception, strong bias 
+despite the data and evidence to the contrary 
+
+Overfit - High variance - Low train error, but High CV error - more data helps 
+fitting high order polynomial 
+the space of possible hypothesis' is too large, too variable -we cannot constrain it 
+
+Plot learning curves: Training error and Cross-Validation error  
+as the number of training examples grow 
+ 
+
+High train error, High CV error - Fixing High Bias (underfit) 
+    - Adding features 
+    - Decrease lambda (reqularization) 
+
+Low train error, High CV error - Fixing High Variance (overfit) 
+    - Get more training examples 
+    - Smaller set of features 
+    - Increase lambda (regularization) 
+
+
+Skewed classes - accuracy not a good metric,  
+use precision and recall instead,  
+which incorporate false positives and false negatives. 
+
+
+Linear regression  
+==================
+
+- what is the relationship between variables? 
+- relationship is modelled using a linear predictor function 
+ 
+Predictor function:  
+    - theta'*X     (theta0 + theta1 * x1 + theta2 * x2...) 
+    - More complex features can be added to have a non-linear prediction function:  x^3, sqrt(x) 
+
+Cost function: 
+    - squared error (bow shaped) 
+    - Convex 
+
+Learing algorithm: 
+    - Gradient descent (updating theta in steps) 
+    - Normal equation 
+    - For linear regression the squared error cost function will be always be convex (bow shaped) -> gradient descent will find the global minimum 
+
+
+
+Logistic regression 
+====================
+    - used for classifying 
+    - prediction output has to be: 0<y<1 
+    probability that y=1, p=(y=1|x,theta) 
+
+ 
+Predictor function: 
+    - g(theta' * X) - sigmoid function
+    - g(z)=1/1+exp(-z) 
+
+Cost function: 
+    - Squared error - not bow shaped, gradient descent will not work -Log(prediction) - (bow shaped) 
+    - Convex (-y*log(h(x))) (-(1-y)*log(1-h(x))) 
+
+Learning algorithm: 
+    - Gradient descent (updateing theta in steps) 
+
+
+If complex, high order feature are used -> overfitting  
+Regularization has to be aplied -when theta is updated it is decreased slightly (-alpha*lambda/m) 
+
+Multiclassification: One-vs-All 
+by modifying the Y expected values,  to be true for only one class 
+than using the same input features (X),  
+to train different models/classifiers for every class  
+
+
+If you want to fit complex, non-linear functions to your data 
+=============================================================
+ 
+Logistic regression 
+    - Not effective 
+    - It can be done, but lot of higher order features need to be added - the calculation gets expensive 
+SVM 
+    - Effective 
+    - There are highly optimized algortihms to minimize the cost function, os it is computationlly cheap 
+
+Neural network 
+    - Effective 
+    - Because of the layered, hierarchical structure you can model  more complex things with less variables; computationally expensive 
+
+
+
+SVM - Support Vector Machine (Classification) 
+================================================
+ 
+cleaner way of learning complex, non-linear functions 
+useful when (n < m) few features, medium number of training examples 
+large margin classifier 
+
+
+Replace features with similiarty function sim(x,l) - similarity between current features (a training example) and a landmark 
+Select landmarks to be equal to the training examples 
+So the new features become: the similarity of a training example to all other available training examples  
+(one feature is going to be 0 for each training example, the one that measures the  similiarty to itself) 
+
+
+Similarity function = kernel 
+    - No kernel=linear kernel ~ same as logistic regression 
+    - Gaussian kernel ~  good for fitting complex, non-linear function 
+
+ 
+
+Predictor function: 
+    - theta' * f 
+    - kernels, similarity fucntions used to calculate f from x 
+    - if >0 predicts 1, else predicts 0 
+
+Cost function: 
+    - Similar to logistic regression, but linear function used instead of log  easier computation 
+    (1-y) * cost0(prediction) + y * cost1(prediction) 
+    - Convex 
+
+Learning algorithm: 
+    - Gradient descent 
+
+
+
+Neural Networks (Classification) 
+==================================
+
+-each layer in the network computes more complex features - based on previous input features 
+-each unit in a layer - computes a logistic regression - based on the features of the previous layer  
+-each unit outputs (0,1) - sigmoid activation units 
+
+- so basically it uses multiple logistic regression - (multiclassification can be achieved - if there are multiple output layers) 
+
+
+Predictor function: 
+    - Same as for logistic regression - sigmoid 
+
+Cost function: 
+    - Same as for logistic regression + sum 
+        - Log(prediction) summed for all output units 
+    - Non-Convex 
+
+Learning algorithm: 
+    - Gradient descent (can calculate local min) 
+    - Backpropagation - used to calculate error for each unit 
+        - Which error is used to calculate -> partial derivatives
+
+        
